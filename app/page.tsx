@@ -32,5 +32,5 @@ export default function Home() {
   }
 
   // Pet exists — show pet screen
-  return <PetScreen data={pet} onReset={() => setPet(null)} />
+  return <PetScreen data={pet} onReset={() => setPet(null)} onUpdate={(updated) => setPet(updated)} />
 }

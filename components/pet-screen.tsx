@@ -1,21 +1,80 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   type RegenmonData,
   REGENMON_TYPES,
+  saveRegenmon,
   deleteRegenmon,
 } from "@/lib/regenmon"
 import { StatBar } from "@/components/stat-bar"
+import { SharkSprite, TreeSprite, BatterySprite } from "@/components/pet-sprites"
 
 interface PetScreenProps {
   data: RegenmonData
   onReset: () => void
+  onUpdate: (data: RegenmonData) => void
 }
 
-export function PetScreen({ data, onReset }: PetScreenProps) {
+function PetIllustration({ type, color }: { type: string; color: string }) {
+  switch (type) {
+    case "gota":
+      return <SharkSprite color={color} size={120} />
+    case "semilla":
+      return <TreeSprite color={color} size={120} />
+    case "chispa":
+      return <BatterySprite color={color} size={120} />
+    default:
+      return null
+  }
+}
+
+export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
+  const [stats, setStats] = useState({
+    happiness: data.happiness,
+    energy: data.energy,
+    hunger: data.hunger,
+  })
   const typeInfo = REGENMON_TYPES[data.type]
+
+  const persistStats = useCallback(
+    (newStats: { happiness: number; energy: number; hunger: number }) => {
+      const updated: RegenmonData = { ...data, ...newStats }
+      saveRegenmon(updated)
+      onUpdate(updated)
+    },
+    [data, onUpdate],
+  )
+
+  // Automatic decay: every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats((prev) => {
+        const next = {
+          happiness: Math.max(0, prev.happiness - 1),
+          energy: Math.max(0, prev.energy - 1),
+          hunger: Math.min(100, prev.hunger + 1),
+        }
+        const updated: RegenmonData = { ...data, ...next }
+        saveRegenmon(updated)
+        onUpdate(updated)
+        return next
+      })
+    }, 60_000)
+
+    return () => clearInterval(interval)
+  }, [data, onUpdate])
+
+  function adjustStat(stat: "happiness" | "energy" | "hunger", delta: number) {
+    setStats((prev) => {
+      const raw = prev[stat] + delta
+      const clamped = Math.max(0, Math.min(100, raw))
+      const next = { ...prev, [stat]: clamped }
+      persistStats(next)
+      return next
+    })
+  }
 
   function handleReset() {
     deleteRegenmon()
@@ -48,14 +107,8 @@ export function PetScreen({ data, onReset }: PetScreenProps) {
           <p className="text-[10px] md:text-xs mb-4 text-foreground font-bold">
             {data.name}
           </p>
-          <div className="animate-float animate-pulse-glow" style={{ color: typeInfo.color }}>
-            <span
-              className="text-6xl md:text-7xl block"
-              role="img"
-              aria-label={typeInfo.label}
-            >
-              {typeInfo.emoji}
-            </span>
+          <div className="animate-float animate-pulse-glow flex items-center justify-center" style={{ color: typeInfo.color }}>
+            <PetIllustration type={data.type} color={typeInfo.color} />
           </div>
           <p
             className="mt-4 text-[8px]"
@@ -71,22 +124,53 @@ export function PetScreen({ data, onReset }: PetScreenProps) {
             <StatBar
               label="Felicidad"
               emoji={"💚"}
-              value={data.happiness}
+              value={stats.happiness}
               color="#4ade80"
             />
             <StatBar
               label={"Energia"}
               emoji={"⚡️"}
-              value={data.energy}
+              value={stats.energy}
               color="#facc15"
             />
             <StatBar
               label="Hambre"
               emoji={"🍎"}
-              value={data.hunger}
+              value={stats.hunger}
               color="#f87171"
             />
           </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="w-full max-w-sm mt-4 grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            className="nes-btn is-success"
+            style={{ fontSize: "7px", padding: "10px 4px", lineHeight: "1.6" }}
+            onClick={() => adjustStat("happiness", 1)}
+            disabled={stats.happiness >= 100}
+          >
+            {"💚 Aumentar Felicidad"}
+          </button>
+          <button
+            type="button"
+            className="nes-btn is-warning"
+            style={{ fontSize: "7px", padding: "10px 4px", lineHeight: "1.6" }}
+            onClick={() => adjustStat("energy", 1)}
+            disabled={stats.energy >= 100}
+          >
+            {"⚡ Aumentar Energia"}
+          </button>
+          <button
+            type="button"
+            className="nes-btn is-primary"
+            style={{ fontSize: "7px", padding: "10px 4px", lineHeight: "1.6" }}
+            onClick={() => adjustStat("hunger", -1)}
+            disabled={stats.hunger <= 0}
+          >
+            {"🍎 Dar Comida"}
+          </button>
         </div>
 
         {/* Created date */}
