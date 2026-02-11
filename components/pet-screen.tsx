@@ -66,7 +66,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   }, [])
 
   // --- Three INDEPENDENT decay timers, registered ONCE on mount ---
-  // Energy: every 10 seconds -1
+  // Energy: every 40 seconds -1
   useEffect(() => {
     const id = setInterval(() => {
       setStats((prev) => {
@@ -76,7 +76,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         onUpdateRef.current(updated)
         return next
       })
-    }, 10_000)
+    }, 40_000)
     return () => clearInterval(id)
   }, []) // empty deps = runs once
 
