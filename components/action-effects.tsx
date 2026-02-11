@@ -45,8 +45,8 @@ function SleepEffect() {
             fontSize: `${14 - i * 2}px`,
             animationDelay: `${i * 0.3}s`,
             opacity: 0,
-            color: "#a78bfa",
-            textShadow: "0 0 6px rgba(167, 139, 250, 0.6)",
+            color: "#facc15",
+            textShadow: "0 0 6px rgba(250, 204, 21, 0.6)",
           }}
         >
           {letter}

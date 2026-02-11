@@ -14,7 +14,10 @@ export function StatBar({ label, emoji, value, color }: StatBarProps) {
         <span className="text-[9px] md:text-[10px] text-foreground">
           {emoji} {label}
         </span>
-        <span className="text-[9px] md:text-[10px] text-foreground">
+        <span
+          className="text-[9px] md:text-[10px] font-bold"
+          style={{ color: "#ffffff", textShadow: "0 0 4px rgba(255,255,255,0.3)" }}
+        >
           {value}/100
         </span>
       </div>

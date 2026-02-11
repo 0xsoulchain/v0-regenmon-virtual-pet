@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import {
   type RegenmonData,
   REGENMON_TYPES,
@@ -43,57 +43,70 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   const [petAnim, setPetAnim] = useState("")
   const typeInfo = REGENMON_TYPES[data.type]
 
-  const persistStats = useCallback(
-    (newStats: { happiness: number; energy: number; hunger: number }) => {
-      const updated: RegenmonData = { ...data, ...newStats }
-      saveRegenmon(updated)
-      onUpdate(updated)
-    },
-    [data, onUpdate],
-  )
+  // Use refs for the latest data/callback so timers never re-register
+  const dataRef = useRef(data)
+  const onUpdateRef = useRef(onUpdate)
+  const statsRef = useRef(stats)
 
-  // 1) Three separate parallel decay timers
+  useEffect(() => {
+    dataRef.current = data
+  }, [data])
+  useEffect(() => {
+    onUpdateRef.current = onUpdate
+  }, [onUpdate])
+  useEffect(() => {
+    statsRef.current = stats
+  }, [stats])
+
+  // Persist helper using refs (stable, no deps issues)
+  const persist = useCallback((newStats: { happiness: number; energy: number; hunger: number }) => {
+    const updated: RegenmonData = { ...dataRef.current, ...newStats }
+    saveRegenmon(updated)
+    onUpdateRef.current(updated)
+  }, [])
+
+  // --- Three INDEPENDENT decay timers, registered ONCE on mount ---
   // Energy: every 10 seconds -1
   useEffect(() => {
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       setStats((prev) => {
         const next = { ...prev, energy: Math.max(0, prev.energy - 1) }
-        const updated: RegenmonData = { ...data, ...next }
+        const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdate(updated)
+        onUpdateRef.current(updated)
         return next
       })
     }, 10_000)
-    return () => clearInterval(interval)
-  }, [data, onUpdate])
+    return () => clearInterval(id)
+  }, []) // empty deps = runs once
 
   // Happiness: every 15 seconds -1
   useEffect(() => {
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       setStats((prev) => {
         const next = { ...prev, happiness: Math.max(0, prev.happiness - 1) }
-        const updated: RegenmonData = { ...data, ...next }
+        const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdate(updated)
+        onUpdateRef.current(updated)
         return next
       })
     }, 15_000)
-    return () => clearInterval(interval)
-  }, [data, onUpdate])
+    return () => clearInterval(id)
+  }, []) // empty deps = runs once
 
   // Hunger: every 30 seconds +1
   useEffect(() => {
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
       setStats((prev) => {
         const next = { ...prev, hunger: Math.min(100, prev.hunger + 1) }
-        const updated: RegenmonData = { ...data, ...next }
+        const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdate(updated)
+        onUpdateRef.current(updated)
         return next
       })
     }, 30_000)
-    return () => clearInterval(interval)
-  }, [data, onUpdate])
+    return () => clearInterval(id)
+  }, []) // empty deps = runs once
 
   function doAction(
     action: "play" | "sleep" | "eat",
@@ -109,7 +122,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       const raw = prev[stat] + delta
       const clamped = Math.max(0, Math.min(100, raw))
       const next = { ...prev, [stat]: clamped }
-      persistStats(next)
+      persist(next)
       return next
     })
   }
@@ -143,11 +156,9 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
 
       {/* Pet display area */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        {/* 5) Pet name HIDDEN - only visual representation, no type label */}
-
-        {/* 4) Pet area - NO black border, cleaner look */}
+        {/* Pet area */}
         <div
-          className="relative w-full max-w-sm p-6 md:p-8 mb-6"
+          className="relative w-full max-w-sm p-6 md:p-8 mb-8"
           style={{ minHeight: "200px" }}
         >
           {/* Action effects overlay */}
@@ -186,8 +197,9 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
           </div>
         </div>
 
-        {/* 2, 3) Action buttons - rounder, clearer text, modern */}
-        <div className="w-full max-w-sm mt-5 grid grid-cols-3 gap-3">
+        {/* Action buttons - colors matched to bars */}
+        <div className="w-full max-w-sm mt-6 grid grid-cols-3 gap-3">
+          {/* PLAY = Green (matches Felicidad bar) */}
           <button
             type="button"
             className={`action-btn action-btn-play ${activeAction === "play" ? "animate-btn-press" : ""}`}
@@ -195,14 +207,15 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             disabled={stats.happiness >= 100 || activeAction !== null}
           >
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
-              <rect x="3" y="2" width="2" height="12" fill="#4ade80" />
-              <rect x="5" y="4" width="2" height="8" fill="#4ade80" />
-              <rect x="7" y="5" width="2" height="6" fill="#4ade80" />
-              <rect x="9" y="6" width="2" height="4" fill="#4ade80" />
-              <rect x="11" y="7" width="2" height="2" fill="#4ade80" />
+              <rect x="3" y="2" width="2" height="12" fill="currentColor" />
+              <rect x="5" y="4" width="2" height="8" fill="currentColor" />
+              <rect x="7" y="5" width="2" height="6" fill="currentColor" />
+              <rect x="9" y="6" width="2" height="4" fill="currentColor" />
+              <rect x="11" y="7" width="2" height="2" fill="currentColor" />
             </svg>
             <span className="action-btn-label">Jugar</span>
           </button>
+          {/* SLEEP = Yellow (matches Energia bar) */}
           <button
             type="button"
             className={`action-btn action-btn-sleep ${activeAction === "sleep" ? "animate-btn-press" : ""}`}
@@ -210,15 +223,16 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             disabled={stats.energy >= 100 || activeAction !== null}
           >
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
-              <rect x="4" y="3" width="4" height="2" fill="#a78bfa" />
-              <rect x="6" y="5" width="2" height="1" fill="#a78bfa" />
-              <rect x="4" y="6" width="4" height="2" fill="#a78bfa" />
-              <rect x="8" y="8" width="6" height="2" fill="#a78bfa" />
-              <rect x="10" y="10" width="2" height="1" fill="#a78bfa" />
-              <rect x="8" y="11" width="6" height="2" fill="#a78bfa" />
+              <rect x="4" y="3" width="4" height="2" fill="currentColor" />
+              <rect x="6" y="5" width="2" height="1" fill="currentColor" />
+              <rect x="4" y="6" width="4" height="2" fill="currentColor" />
+              <rect x="8" y="8" width="6" height="2" fill="currentColor" />
+              <rect x="10" y="10" width="2" height="1" fill="currentColor" />
+              <rect x="8" y="11" width="6" height="2" fill="currentColor" />
             </svg>
             <span className="action-btn-label">Dormir</span>
           </button>
+          {/* EAT = Red (matches Hambre bar) */}
           <button
             type="button"
             className={`action-btn action-btn-eat ${activeAction === "eat" ? "animate-btn-press" : ""}`}
@@ -228,11 +242,11 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
               <rect x="6" y="1" width="4" height="2" fill="#22c55e" />
               <rect x="5" y="3" width="6" height="1" fill="#22c55e" />
-              <rect x="3" y="4" width="10" height="3" fill="#f87171" />
-              <rect x="3" y="7" width="10" height="2" fill="#ef4444" />
-              <rect x="3" y="9" width="10" height="2" fill="#dc2626" />
-              <rect x="4" y="11" width="8" height="2" fill="#dc2626" />
-              <rect x="5" y="13" width="6" height="1" fill="#b91c1c" />
+              <rect x="3" y="4" width="10" height="3" fill="currentColor" />
+              <rect x="3" y="7" width="10" height="2" fill="currentColor" />
+              <rect x="3" y="9" width="10" height="2" fill="currentColor" />
+              <rect x="4" y="11" width="8" height="2" fill="currentColor" />
+              <rect x="5" y="13" width="6" height="1" fill="currentColor" />
               <rect x="5" y="5" width="1" height="1" fill="#facc15" />
               <rect x="8" y="6" width="1" height="1" fill="#facc15" />
               <rect x="10" y="5" width="1" height="1" fill="#facc15" />
@@ -242,7 +256,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         </div>
 
         {/* Created date */}
-        <p className="text-[7px] md:text-[8px] text-muted-foreground mt-5 text-center opacity-60">
+        <p className="text-[7px] md:text-[8px] text-muted-foreground mt-6 text-center opacity-60">
           Creado el{" "}
           {new Date(data.createdAt).toLocaleDateString("es", {
             day: "numeric",

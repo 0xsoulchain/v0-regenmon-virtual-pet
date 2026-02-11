@@ -85,8 +85,9 @@
 .stat-container {
   background-color: hsl(220, 13%, 12%);
   border: 2px solid hsl(220, 13%, 22%);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== Reset button ===== */
@@ -332,13 +333,13 @@
 }
 
 .action-btn-sleep {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-  border-color: #7c3aed;
-  box-shadow: 0 4px 20px rgba(167, 139, 250, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  border-color: #ca8a04;
+  box-shadow: 0 4px 20px rgba(250, 204, 21, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .action-btn-sleep:hover:not(:disabled) {
-  box-shadow: 0 6px 28px rgba(167, 139, 250, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 28px rgba(250, 204, 21, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .action-btn-eat {
