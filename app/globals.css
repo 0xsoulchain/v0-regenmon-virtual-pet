@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 15% 13%;
+    --foreground: 0 0% 95%;
+    --card: 220 13% 18%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 13% 18%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 142 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 25%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 220 13% 25%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 48 95% 55%;
+    --accent-foreground: 220 15% 13%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 30%;
+    --input: 220 13% 30%;
+    --ring: 142 60% 45%;
+    --radius: 0rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-pixel), "Press Start 2P", monospace;
+    image-rendering: pixelated;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* NES.css overrides for dark pixel theme */
+.nes-container {
+  background-color: hsl(220, 13%, 18%) !important;
+  color: hsl(0, 0%, 95%) !important;
+  border-image-repeat: stretch !important;
+}
+
+.nes-container.is-dark {
+  background-color: hsl(220, 15%, 13%) !important;
+  color: hsl(0, 0%, 95%) !important;
+}
+
+.nes-container.is-rounded {
+  border-radius: 0 !important;
+}
+
+.nes-container.with-title > .title {
+  background-color: hsl(220, 13%, 18%) !important;
+  color: hsl(0, 0%, 95%) !important;
+}
+
+.nes-btn {
+  font-family: var(--font-pixel), "Press Start 2P", monospace !important;
+}
+
+.nes-input,
+.nes-textarea {
+  background-color: hsl(220, 13%, 25%) !important;
+  color: hsl(0, 0%, 95%) !important;
+  font-family: var(--font-pixel), "Press Start 2P", monospace !important;
+}
+
+.nes-progress {
+  height: 28px !important;
+  border-image-repeat: stretch !important;
+}
+
+/* Custom pixel animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes hatch {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px currentColor); }
+  50% { filter: drop-shadow(0 0 20px currentColor); }
+}
+
+.animate-float {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+.animate-hatch {
+  animation: hatch 0.6s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
