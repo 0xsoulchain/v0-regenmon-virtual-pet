@@ -93,7 +93,7 @@ export function ActionEffect({ action, onComplete }: ActionEffectProps) {
       const timer = setTimeout(() => {
         setVisible(false)
         onComplete()
-      }, 1200)
+      }, 500)
       return () => clearTimeout(timer)
     }
   }, [action, onComplete])

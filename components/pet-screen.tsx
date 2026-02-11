@@ -52,22 +52,46 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
     [data, onUpdate],
   )
 
-  // Automatic decay: every 60 seconds
+  // 1) Three separate parallel decay timers
+  // Energy: every 10 seconds -1
   useEffect(() => {
     const interval = setInterval(() => {
       setStats((prev) => {
-        const next = {
-          happiness: Math.max(0, prev.happiness - 1),
-          energy: Math.max(0, prev.energy - 1),
-          hunger: Math.min(100, prev.hunger + 1),
-        }
+        const next = { ...prev, energy: Math.max(0, prev.energy - 1) }
         const updated: RegenmonData = { ...data, ...next }
         saveRegenmon(updated)
         onUpdate(updated)
         return next
       })
-    }, 60_000)
+    }, 10_000)
+    return () => clearInterval(interval)
+  }, [data, onUpdate])
 
+  // Happiness: every 15 seconds -1
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats((prev) => {
+        const next = { ...prev, happiness: Math.max(0, prev.happiness - 1) }
+        const updated: RegenmonData = { ...data, ...next }
+        saveRegenmon(updated)
+        onUpdate(updated)
+        return next
+      })
+    }, 15_000)
+    return () => clearInterval(interval)
+  }, [data, onUpdate])
+
+  // Hunger: every 30 seconds +1
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats((prev) => {
+        const next = { ...prev, hunger: Math.min(100, prev.hunger + 1) }
+        const updated: RegenmonData = { ...data, ...next }
+        saveRegenmon(updated)
+        onUpdate(updated)
+        return next
+      })
+    }, 30_000)
     return () => clearInterval(interval)
   }, [data, onUpdate])
 
@@ -106,12 +130,11 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       <BackgroundParticles type={data.type} />
 
       {/* Header with logo */}
-      <header className="relative z-10 flex items-center justify-between p-3 md:p-4 border-b-4 border-border">
+      <header className="relative z-10 flex items-center justify-between p-3 md:p-4 border-b-2 border-border/50">
         <RegenmonLogo />
         <button
           type="button"
-          className="nes-btn is-error"
-          style={{ fontSize: "7px", padding: "6px 10px" }}
+          className="reset-btn"
           onClick={() => setShowConfirm(true)}
         >
           Reiniciar
@@ -120,26 +143,11 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
 
       {/* Pet display area */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 md:p-8">
-        {/* Pet name - prominent */}
-        <h2
-          className="text-lg md:text-xl mb-2 text-center tracking-wide"
-          style={{
-            color: typeInfo.color,
-            textShadow: `0 0 12px ${typeInfo.color}, 0 0 24px ${typeInfo.color}40`,
-          }}
-        >
-          {data.name}
-        </h2>
-        <p
-          className="text-[9px] mb-4"
-          style={{ color: typeInfo.color, opacity: 0.7 }}
-        >
-          {typeInfo.label}
-        </p>
+        {/* 5) Pet name HIDDEN - only visual representation, no type label */}
 
-        {/* Pet card */}
+        {/* 4) Pet area - NO black border, cleaner look */}
         <div
-          className={`relative w-full max-w-sm border-4 ${typeInfo.borderColor} ${typeInfo.bgClass} p-6 md:p-8 mb-6`}
+          className="relative w-full max-w-sm p-6 md:p-8 mb-6"
           style={{ minHeight: "200px" }}
         >
           {/* Action effects overlay */}
@@ -156,7 +164,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
 
         {/* Stats */}
         <div className="w-full max-w-sm">
-          <div className="nes-container is-dark">
+          <div className="stat-container">
             <StatBar
               label="Felicidad"
               emoji={"<3"}
@@ -178,7 +186,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
           </div>
         </div>
 
-        {/* Action buttons - redesigned */}
+        {/* 2, 3) Action buttons - rounder, clearer text, modern */}
         <div className="w-full max-w-sm mt-5 grid grid-cols-3 gap-3">
           <button
             type="button"
@@ -186,14 +194,14 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             onClick={() => doAction("play", "happiness", 1, "animate-pet-bounce")}
             disabled={stats.happiness >= 100 || activeAction !== null}
           >
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
               <rect x="3" y="2" width="2" height="12" fill="#4ade80" />
               <rect x="5" y="4" width="2" height="8" fill="#4ade80" />
               <rect x="7" y="5" width="2" height="6" fill="#4ade80" />
               <rect x="9" y="6" width="2" height="4" fill="#4ade80" />
               <rect x="11" y="7" width="2" height="2" fill="#4ade80" />
             </svg>
-            <span>Jugar</span>
+            <span className="action-btn-label">Jugar</span>
           </button>
           <button
             type="button"
@@ -201,7 +209,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             onClick={() => doAction("sleep", "energy", 1, "animate-pet-breathe")}
             disabled={stats.energy >= 100 || activeAction !== null}
           >
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
               <rect x="4" y="3" width="4" height="2" fill="#a78bfa" />
               <rect x="6" y="5" width="2" height="1" fill="#a78bfa" />
               <rect x="4" y="6" width="4" height="2" fill="#a78bfa" />
@@ -209,7 +217,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
               <rect x="10" y="10" width="2" height="1" fill="#a78bfa" />
               <rect x="8" y="11" width="6" height="2" fill="#a78bfa" />
             </svg>
-            <span>Dormir</span>
+            <span className="action-btn-label">Dormir</span>
           </button>
           <button
             type="button"
@@ -217,7 +225,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             onClick={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
             disabled={stats.hunger <= 0 || activeAction !== null}
           >
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 16 16" fill="none" style={{ imageRendering: "pixelated" }} aria-hidden="true">
               <rect x="6" y="1" width="4" height="2" fill="#22c55e" />
               <rect x="5" y="3" width="6" height="1" fill="#22c55e" />
               <rect x="3" y="4" width="10" height="3" fill="#f87171" />
@@ -225,17 +233,16 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
               <rect x="3" y="9" width="10" height="2" fill="#dc2626" />
               <rect x="4" y="11" width="8" height="2" fill="#dc2626" />
               <rect x="5" y="13" width="6" height="1" fill="#b91c1c" />
-              {/* Seeds */}
               <rect x="5" y="5" width="1" height="1" fill="#facc15" />
               <rect x="8" y="6" width="1" height="1" fill="#facc15" />
               <rect x="10" y="5" width="1" height="1" fill="#facc15" />
             </svg>
-            <span>Comer</span>
+            <span className="action-btn-label">Comer</span>
           </button>
         </div>
 
         {/* Created date */}
-        <p className="text-[7px] md:text-[8px] text-muted-foreground mt-5 text-center">
+        <p className="text-[7px] md:text-[8px] text-muted-foreground mt-5 text-center opacity-60">
           Creado el{" "}
           {new Date(data.createdAt).toLocaleDateString("es", {
             day: "numeric",
@@ -249,31 +256,26 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       {showConfirm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.80)" }}
+          style={{ backgroundColor: "rgba(0,0,0,0.85)" }}
         >
-          <div className="nes-container is-dark with-title w-full max-w-xs">
-            <p className="title text-[8px]">Cuidado</p>
-            <p className="text-[9px] mb-6 text-foreground leading-relaxed">
+          <div className="confirm-dialog w-full max-w-xs">
+            <p className="text-[10px] mb-2 font-bold" style={{ color: "#f87171" }}>
+              Cuidado
+            </p>
+            <p className="text-[9px] mb-6 text-foreground leading-relaxed opacity-80">
               {"Seguro que quieres reiniciar? Se perdera tu Regenmon para siempre."}
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
-                className="nes-btn is-error flex-1"
-                style={{ fontSize: "8px", padding: "8px" }}
+                className="confirm-btn confirm-btn-danger flex-1"
                 onClick={handleReset}
               >
                 {"Si, borrar"}
               </button>
               <button
                 type="button"
-                className="nes-btn flex-1"
-                style={{
-                  fontSize: "8px",
-                  padding: "8px",
-                  backgroundColor: "hsl(220, 13%, 25%)",
-                  color: "hsl(0, 0%, 95%)",
-                }}
+                className="confirm-btn confirm-btn-cancel flex-1"
                 onClick={() => setShowConfirm(false)}
               >
                 Cancelar
