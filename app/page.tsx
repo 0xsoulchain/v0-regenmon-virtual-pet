@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { type RegenmonData, loadRegenmon } from "@/lib/regenmon"
 import { CreateScreen } from "@/components/create-screen"
 import { PetScreen } from "@/components/pet-screen"
