@@ -78,12 +78,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, energy: Math.max(0, prev.energy - 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 40_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   // Happiness: every 15 seconds -1
   useEffect(() => {
@@ -92,12 +92,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, happiness: Math.max(0, prev.happiness - 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 15_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   // Hunger: every 30 seconds +1
   useEffect(() => {
@@ -106,12 +106,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, hunger: Math.min(100, prev.hunger + 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 30_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   function doAction(
     action: "play" | "sleep" | "eat",

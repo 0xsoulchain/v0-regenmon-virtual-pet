@@ -1,4 +1,9 @@
 import { generateText } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
+
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
 
 export async function POST(req: Request) {
   try {
@@ -47,7 +52,7 @@ ${behaviorRules.length > 0 ? "\nReglas de comportamiento actuales:\n" + behavior
 Responde al mensaje del usuario de forma breve, carinosa y en personaje.`
 
     const { text } = await generateText({
-      model: "openai/gpt-4o-mini",
+      model: openai("gpt-4o-mini"),
       system: systemPrompt,
       prompt: message,
       maxOutputTokens: 150,
@@ -57,11 +62,6 @@ Responde al mensaje del usuario de forma breve, carinosa y en personaje.`
     return Response.json({ reply: text })
   } catch (error: unknown) {
     console.error("Chat API error:", error)
-    // Check for AI Gateway credit card requirement
-    const errMsg =
-      error instanceof Error && error.message?.includes("credit card")
-        ? "El AI Gateway necesita una tarjeta de credito en tu cuenta de Vercel. Visita la configuracion de tu equipo para agregarla."
-        : "Ups... algo salio mal"
-    return Response.json({ reply: errMsg }, { status: 500 })
+    return Response.json({ reply: "Ups... algo salio mal. Verifica tu API key de OpenAI." }, { status: 500 })
   }
 }
