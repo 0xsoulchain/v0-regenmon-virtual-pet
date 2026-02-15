@@ -12,6 +12,7 @@ import { SharkSprite, TreeSprite, BatterySprite } from "@/components/pet-sprites
 import { RegenmonLogo } from "@/components/regenmon-logo"
 import { BackgroundParticles } from "@/components/background-particles"
 import { ActionEffect } from "@/components/action-effects"
+import { ChatBox } from "@/components/chat-box"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -126,6 +127,22 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       return next
     })
   }
+
+  // Handle stat changes from chat
+  const handleChatStatChange = useCallback(
+    (delta: { happiness?: number; energy?: number }) => {
+      setStats((prev) => {
+        const next = {
+          ...prev,
+          happiness: Math.max(0, Math.min(100, prev.happiness + (delta.happiness ?? 0))),
+          energy: Math.max(0, Math.min(100, prev.energy + (delta.energy ?? 0))),
+        }
+        persist(next)
+        return next
+      })
+    },
+    [persist],
+  )
 
   function clearAction() {
     setActiveAction(null)
@@ -253,6 +270,11 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             </svg>
             <span className="action-btn-label">Comer</span>
           </button>
+        </div>
+
+        {/* Chat */}
+        <div className="w-full max-w-sm mt-6 relative">
+          <ChatBox stats={stats} onStatChange={handleChatStatChange} />
         </div>
 
         {/* Created date */}

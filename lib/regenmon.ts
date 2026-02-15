@@ -58,5 +58,7 @@ export function loadRegenmon(): RegenmonData | null {
 export function deleteRegenmon(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem("regenmonChatHistory")
+    localStorage.removeItem("regenmonMemories")
   }
 }
