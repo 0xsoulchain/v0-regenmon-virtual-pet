@@ -55,8 +55,13 @@ Responde al mensaje del usuario de forma breve, carinosa y en personaje.`
     })
 
     return Response.json({ reply: text })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Chat API error:", error)
-    return Response.json({ reply: "Ups... algo salio mal" }, { status: 500 })
+    // Check for AI Gateway credit card requirement
+    const errMsg =
+      error instanceof Error && error.message?.includes("credit card")
+        ? "El AI Gateway necesita una tarjeta de credito en tu cuenta de Vercel. Visita la configuracion de tu equipo para agregarla."
+        : "Ups... algo salio mal"
+    return Response.json({ reply: errMsg }, { status: 500 })
   }
 }

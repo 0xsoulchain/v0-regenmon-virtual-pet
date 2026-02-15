@@ -60,10 +60,14 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   }, [stats])
 
   // Persist helper using refs (stable, no deps issues)
+  // Uses queueMicrotask to defer the parent setState and avoid
+  // "Cannot update a component while rendering a different component"
   const persist = useCallback((newStats: { happiness: number; energy: number; hunger: number }) => {
     const updated: RegenmonData = { ...dataRef.current, ...newStats }
     saveRegenmon(updated)
-    onUpdateRef.current(updated)
+    queueMicrotask(() => {
+      onUpdateRef.current(updated)
+    })
   }, [])
 
   // --- Three INDEPENDENT decay timers, registered ONCE on mount ---
