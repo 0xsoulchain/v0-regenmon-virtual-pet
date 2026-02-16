@@ -384,26 +384,26 @@
 
 .chat-header-title {
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 9px;
+  font-size: 11px;
   color: hsl(0, 0%, 85%);
   font-weight: 700;
 }
 
 .chat-memory-count {
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 9px;
   color: #a78bfa;
   opacity: 0.8;
 }
 
 .chat-messages {
-  min-height: 120px;
-  max-height: 200px;
+  min-height: 140px;
+  max-height: 240px;
   overflow-y: auto;
-  padding: 12px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   scrollbar-width: thin;
   scrollbar-color: hsl(220, 13%, 25%) transparent;
 }
@@ -430,19 +430,19 @@
 
 .chat-empty p {
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 9px;
   color: hsl(220, 10%, 45%);
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.8;
 }
 
 .chat-bubble {
   max-width: 85%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 7px;
-  line-height: 1.6;
+  font-size: 10px;
+  line-height: 1.8;
   animation: chat-bubble-in 0.2s ease-out;
   word-break: break-word;
 }
@@ -486,9 +486,9 @@
   background-color: hsl(220, 13%, 20%);
   border: 2px solid hsl(220, 13%, 28%);
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 8px;
+  font-size: 10px;
   color: hsl(0, 0%, 92%);
   outline: none;
   transition: border-color 0.15s ease;
@@ -496,7 +496,7 @@
 
 .chat-input::placeholder {
   color: hsl(220, 10%, 40%);
-  font-size: 7px;
+  font-size: 9px;
 }
 
 .chat-input:focus {
@@ -538,11 +538,11 @@
 
 .chat-stat-float {
   position: absolute;
-  top: -20px;
+  top: -24px;
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-pixel), "Press Start 2P", monospace;
-  font-size: 7px;
+  font-size: 9px;
   font-weight: 700;
   white-space: nowrap;
   pointer-events: none;
