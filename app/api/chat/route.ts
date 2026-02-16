@@ -52,7 +52,7 @@ ${behaviorRules.length > 0 ? "\nReglas de comportamiento actuales:\n" + behavior
 Responde al mensaje del usuario de forma breve, carinosa y en personaje.`
 
     const { text } = await generateText({
-      model: openai.chat("gpt-4o-mini"),
+      model: openai("gpt-4o-mini"),
       system: systemPrompt,
       prompt: message,
       maxOutputTokens: 150,
