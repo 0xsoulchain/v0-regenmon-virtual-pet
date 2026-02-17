@@ -12,6 +12,7 @@ import { SharkSprite, TreeSprite, BatterySprite } from "@/components/pet-sprites
 import { RegenmonLogo } from "@/components/regenmon-logo"
 import { BackgroundParticles } from "@/components/background-particles"
 import { ActionEffect } from "@/components/action-effects"
+import { ChatBox } from "@/components/chat-box"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -59,10 +60,14 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   }, [stats])
 
   // Persist helper using refs (stable, no deps issues)
+  // Uses queueMicrotask to defer the parent setState and avoid
+  // "Cannot update a component while rendering a different component"
   const persist = useCallback((newStats: { happiness: number; energy: number; hunger: number }) => {
     const updated: RegenmonData = { ...dataRef.current, ...newStats }
     saveRegenmon(updated)
-    onUpdateRef.current(updated)
+    queueMicrotask(() => {
+      onUpdateRef.current(updated)
+    })
   }, [])
 
   // --- Three INDEPENDENT decay timers, registered ONCE on mount ---
@@ -73,12 +78,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, energy: Math.max(0, prev.energy - 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 40_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   // Happiness: every 15 seconds -1
   useEffect(() => {
@@ -87,12 +92,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, happiness: Math.max(0, prev.happiness - 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 15_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   // Hunger: every 30 seconds +1
   useEffect(() => {
@@ -101,12 +106,12 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
         const next = { ...prev, hunger: Math.min(100, prev.hunger + 1) }
         const updated: RegenmonData = { ...dataRef.current, ...next }
         saveRegenmon(updated)
-        onUpdateRef.current(updated)
+        queueMicrotask(() => onUpdateRef.current(updated))
         return next
       })
     }, 30_000)
     return () => clearInterval(id)
-  }, []) // empty deps = runs once
+  }, [])
 
   function doAction(
     action: "play" | "sleep" | "eat",
@@ -126,6 +131,22 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       return next
     })
   }
+
+  // Handle stat changes from chat
+  const handleChatStatChange = useCallback(
+    (delta: { happiness?: number; energy?: number }) => {
+      setStats((prev) => {
+        const next = {
+          ...prev,
+          happiness: Math.max(0, Math.min(100, prev.happiness + (delta.happiness ?? 0))),
+          energy: Math.max(0, Math.min(100, prev.energy + (delta.energy ?? 0))),
+        }
+        persist(next)
+        return next
+      })
+    },
+    [persist],
+  )
 
   function clearAction() {
     setActiveAction(null)
@@ -253,6 +274,11 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             </svg>
             <span className="action-btn-label">Comer</span>
           </button>
+        </div>
+
+        {/* Chat */}
+        <div className="w-full max-w-sm mt-6 relative">
+          <ChatBox stats={stats} onStatChange={handleChatStatChange} />
         </div>
 
         {/* Created date */}
