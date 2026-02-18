@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { usePrivy } from '@privy-io/react-auth'
 import { deductCoins, getUserCoins, COIN_CONSTANTS } from '@/lib/coins'
 import { CoinAnimation } from '@/components/coin-animation'
+import { loadAuth } from '@/lib/auth'
 
 interface FeedButtonProps {
   hunger: number
@@ -12,7 +12,7 @@ interface FeedButtonProps {
 }
 
 export function FeedButton({ hunger, onFeed, disabled = false }: FeedButtonProps) {
-  const { user } = usePrivy()
+  const user = loadAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showAnimation, setShowAnimation] = useState(false)
   const [animationType, setAnimationType] = useState<'earn' | 'spend'>('spend')
