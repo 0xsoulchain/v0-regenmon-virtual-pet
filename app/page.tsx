@@ -1,43 +1,43 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { type RegenmonData, loadRegenmon } from "@/lib/regenmon"
-import { type AuthUser, loadAuth, createAuth } from "@/lib/auth"
+import { usePrivy } from "@privy-io/react-auth"
+import { type RegenmonData, loadRegenmon, saveRegenmon } from "@/lib/regenmon"
+import { initializeUserData, loadUserData } from "@/lib/user-manager"
 import { CreateScreen } from "@/components/create-screen"
 import { PetScreen } from "@/components/pet-screen"
 import { CoinHeader } from "@/components/coin-header"
 
 export default function Home() {
+  const { user: privyUser, isReady, logout } = usePrivy()
   const [pet, setPet] = useState<RegenmonData | null | undefined>(undefined)
-  const [user, setUser] = useState<AuthUser | null | undefined>(undefined)
-  const [username, setUsername] = useState("")
+  const [userData, setUserData] = useState<any | null | undefined>(undefined)
 
   useEffect(() => {
-    // Load existing auth or show login
-    const existingAuth = loadAuth()
-    if (existingAuth) {
-      setUser(existingAuth)
-      setPet(loadRegenmon())
-    } else {
-      setUser(null)
-      setPet(null)
-    }
-  }, [])
+    if (!isReady) return
 
-  const handleLogin = (name: string) => {
-    const newUser = createAuth(name)
-    setUser(newUser)
-    setUsername("")
-    setPet(loadRegenmon())
-  }
+    if (!privyUser) {
+      // No authenticated user
+      setUserData(null)
+      setPet(null)
+    } else {
+      // Authenticated user
+      const userdata = initializeUserData(privyUser)
+      setUserData(userdata)
+
+      // Load their pet if exists
+      const pet = loadRegenmon()
+      setPet(pet)
+    }
+  }, [privyUser, isReady])
 
   // Loading state
-  if (user === undefined || pet === undefined) {
+  if (!isReady || userData === undefined || pet === undefined) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center animate-float">
           <span className="text-5xl block mb-4" role="img" aria-label="cargando">
-            {"🥚"}
+            🥚
           </span>
           <p className="text-[10px] text-muted-foreground">Cargando...</p>
         </div>
@@ -46,49 +46,53 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <CoinHeader user={user} />
-      
+    <div className="flex flex-col min-h-screen bg-background">
+      <CoinHeader user={privyUser} logout={logout} />
+
       <main className="flex-1">
-        {user === null ? (
-          // Not logged in - show login screen
+        {!privyUser ? (
+          // Not authenticated - show guest screen
           <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/50">
-            <div className="text-center">
+            <div className="text-center max-w-md mx-auto px-4">
               <div className="text-6xl mb-6">🍊</div>
-              <h1 className="text-2xl font-bold mb-4 text-foreground">REGENMON</h1>
-              <p className="text-sm text-muted-foreground mb-8">Crea y cuida tu mascota virtual</p>
-              
-              <div className="mb-6">
-                <input
-                  type="text"
-                  className="nes-input w-64 text-xs text-center"
-                  placeholder="Tu nombre"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && username.trim()) {
-                      handleLogin(username)
-                    }
-                  }}
-                />
-              </div>
-              
+              <h1 className="text-3xl font-bold mb-2 text-foreground" style={{ fontFamily: "var(--font-pixel)" }}>
+                REGENMON
+              </h1>
+              <p className="text-sm text-muted-foreground mb-8">Crea y cuida tu mascota virtual estilo Tamagotchi</p>
+
+              <p className="text-[10px] text-muted-foreground mb-6">Inicia sesión con Google o Email para comenzar</p>
+
               <button
                 type="button"
-                className="nes-btn is-primary"
-                onClick={() => username.trim() && handleLogin(username)}
-                disabled={!username.trim()}
+                className="nes-btn is-primary px-8 py-2"
+                onClick={() => {
+                  // Privy login will be triggered via their button in the header
+                }}
               >
-                Entrar
+                Iniciar Sesión
               </button>
+
+              <p className="text-[8px] text-muted-foreground mt-6">
+                Modo invitado: Algunos datos no se guardaran sin iniciar sesión
+              </p>
             </div>
           </div>
         ) : pet === null ? (
-          // User logged in but no pet - show creation screen
+          // Authenticated but no pet - show creation screen
           <CreateScreen onCreated={(data) => setPet(data)} />
         ) : (
           // Pet exists - show pet screen
-          <PetScreen data={pet} onReset={() => setPet(null)} onUpdate={(updated) => setPet(updated)} />
+          <PetScreen
+            data={pet}
+            onReset={() => {
+              setPet(null)
+              if (privyUser) {
+                const updatedData = initializeUserData(privyUser)
+                setUserData(updatedData)
+              }
+            }}
+            onUpdate={(updated) => setPet(updated)}
+          />
         )}
       </main>
     </div>

@@ -1,6 +1,7 @@
 import React from "react"
 import type { Metadata, Viewport } from "next"
 import { Press_Start_2P } from "next/font/google"
+import { PrivyProvider } from "@privy-io/react-auth"
 
 import "./globals.css"
 
@@ -36,7 +37,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${pressStart2P.variable} font-sans antialiased`}>
-        {children}
+        <PrivyProvider appId="cmkyyrsbj04bck40bidlscndo">
+          {children}
+        </PrivyProvider>
       </body>
     </html>
   )

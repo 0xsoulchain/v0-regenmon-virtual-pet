@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { deductCoins, getUserCoins, COIN_CONSTANTS } from '@/lib/coins'
+import { useState, useEffect } from 'react'
+import { usePrivy } from '@privy-io/react-auth'
+import { deductCoins, getCoins } from '@/lib/user-manager'
 import { CoinAnimation } from '@/components/coin-animation'
-import { loadAuth } from '@/lib/auth'
+
+const FEED_COST = 10
 
 interface FeedButtonProps {
   hunger: number
@@ -12,23 +14,33 @@ interface FeedButtonProps {
 }
 
 export function FeedButton({ hunger, onFeed, disabled = false }: FeedButtonProps) {
-  const user = loadAuth()
+  const { user: privyUser } = usePrivy()
+  const [coins, setCoins] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [showAnimation, setShowAnimation] = useState(false)
   const [animationType, setAnimationType] = useState<'earn' | 'spend'>('spend')
 
-  const canAfford = user ? getUserCoins(user.id) >= COIN_CONSTANTS.FEED_COST : false
+  // Update coin display when user changes
+  useEffect(() => {
+    if (privyUser?.id) {
+      const currentCoins = getCoins(privyUser.id)
+      setCoins(currentCoins)
+    }
+  }, [privyUser?.id])
+
+  const canAfford = coins >= FEED_COST
   const canFeed = hunger > 0 && canAfford && !isLoading && !disabled
 
   const handleFeed = async () => {
-    if (!canFeed || !user) return
+    if (!canFeed || !privyUser?.id) return
 
     setIsLoading(true)
     
     // Deduct coins
-    const success = deductCoins(user.id, COIN_CONSTANTS.FEED_COST)
+    const success = deductCoins(privyUser.id, FEED_COST)
     
     if (success) {
+      setCoins(getCoins(privyUser.id))
       setAnimationType('spend')
       setShowAnimation(true)
       
@@ -42,11 +54,9 @@ export function FeedButton({ hunger, onFeed, disabled = false }: FeedButtonProps
     setIsLoading(false)
   }
 
-  if (!user) {
+  if (!privyUser) {
     return null
   }
-
-  const currentCoins = getUserCoins(user.id)
 
   return (
     <>
@@ -58,15 +68,15 @@ export function FeedButton({ hunger, onFeed, disabled = false }: FeedButtonProps
         {isLoading ? (
           <>⏳ Procesando...</>
         ) : !canAfford ? (
-          <>🍎 Alimentar (Insuficientes monedas)</>
+          <>🍎 Alimentar (Necesitas {FEED_COST} 🍊)</>
         ) : (
-          <>🍎 Alimentar ({COIN_CONSTANTS.FEED_COST} 🍊)</>
+          <>🍎 Alimentar ({FEED_COST} 🍊)</>
         )}
       </button>
 
       {showAnimation && (
         <CoinAnimation
-          amount={COIN_CONSTANTS.FEED_COST}
+          amount={FEED_COST}
           type={animationType}
           onComplete={() => setShowAnimation(false)}
         />

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { usePrivy } from "@privy-io/react-auth"
 import { type ChatMessage, loadChat, saveChat } from "@/lib/chat"
 import { loadMemories, saveMemory, detectMemory } from "@/lib/memory"
-import { addCoins, calculateChatEarnings, getUserCoins } from "@/lib/coins"
+import { addCoinsWithDailyLimit, getCoins } from "@/lib/user-manager"
 import { CoinAnimation } from "@/components/coin-animation"
-import { loadAuth } from "@/lib/auth"
 
 interface ChatBoxProps {
   stats: { happiness: number; energy: number; hunger: number }
@@ -13,7 +13,7 @@ interface ChatBoxProps {
 }
 
 export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
-  const user = loadAuth()
+  const { user: privyUser } = usePrivy()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
@@ -120,11 +120,13 @@ export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
       setMessages(updatedWithReply)
       saveChat(updatedWithReply)
       
-      // Award coins after successful response
-      if (user && data.reply) {
-        const coinsToAdd = calculateChatEarnings(getUserCoins(user.id))
-        if (coinsToAdd > 0) {
-          addCoins(user.id, coinsToAdd)
+      // Award coins after successful response - only if user is authenticated
+      if (privyUser?.id && data.reply) {
+        // Award between 2-5 coins based on daily balance
+        const coinsToAdd = Math.floor(Math.random() * 4) + 2 // 2-5 coins
+        const result = addCoinsWithDailyLimit(privyUser.id, coinsToAdd)
+        
+        if (result.success && result.newBalance > 0) {
           setCoinFloat({ amount: coinsToAdd, type: 'earn' })
           setTimeout(() => setCoinFloat(null), 1200)
         }
