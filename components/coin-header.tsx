@@ -1,11 +1,15 @@
 'use client'
 
-import { usePrivy } from '@privy-io/react-auth'
 import { getUserCoins } from '@/lib/coins'
+import { logout as logoutAuth } from '@/lib/auth'
 import { useEffect, useState } from 'react'
+import type { AuthUser } from '@/lib/auth'
 
-export function CoinHeader() {
-  const { user, logout, isReady } = usePrivy()
+interface CoinHeaderProps {
+  user: AuthUser | null
+}
+
+export function CoinHeader({ user }: CoinHeaderProps) {
   const [coins, setCoins] = useState(0)
 
   useEffect(() => {
@@ -15,12 +19,12 @@ export function CoinHeader() {
     }
   }, [user?.id])
 
-  if (!isReady) {
-    return null
+  const handleLogout = () => {
+    logoutAuth()
+    window.location.reload()
   }
 
-  const email = user?.email?.address || user?.phone?.number || 'Usuario'
-  const displayName = email.split('@')[0] || 'Usuario'
+  const displayName = user?.username || 'Usuario'
 
   return (
     <header className="w-full border-b border-border/50 bg-background/40 backdrop-blur-sm">
@@ -51,7 +55,7 @@ export function CoinHeader() {
 
           {user ? (
             <button
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="text-xs px-3 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
             >
               Salir

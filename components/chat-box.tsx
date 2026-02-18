@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { usePrivy } from "@privy-io/react-auth"
 import { type ChatMessage, loadChat, saveChat } from "@/lib/chat"
 import { loadMemories, saveMemory, detectMemory } from "@/lib/memory"
 import { addCoins, calculateChatEarnings, getUserCoins } from "@/lib/coins"
 import { CoinAnimation } from "@/components/coin-animation"
+import { loadAuth } from "@/lib/auth"
 
 interface ChatBoxProps {
   stats: { happiness: number; energy: number; hunger: number }
@@ -13,7 +13,7 @@ interface ChatBoxProps {
 }
 
 export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
-  const { user } = usePrivy()
+  const user = loadAuth()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
