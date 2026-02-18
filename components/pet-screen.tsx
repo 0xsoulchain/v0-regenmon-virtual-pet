@@ -18,6 +18,7 @@ import { ActionEffect } from "@/components/action-effects"
 import { ChatBox } from "@/components/chat-box"
 import { XpBar } from "@/components/xp-bar"
 import { LevelUpAnimation } from "@/components/level-up-animation"
+import { FeedButton } from "@/components/feed-button"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -320,6 +321,15 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             </svg>
             <span className="action-btn-label">Comer</span>
           </button>
+        </div>
+
+        {/* Feed Button with coin cost */}
+        <div className="w-full max-w-sm mt-4">
+          <FeedButton
+            hunger={stats.hunger}
+            onFeed={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
+            disabled={activeAction !== null}
+          />
         </div>
 
         {/* Chat */}

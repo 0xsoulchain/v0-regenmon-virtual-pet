@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { usePrivy } from "@privy-io/react-auth"
 import { type ChatMessage, loadChat, saveChat } from "@/lib/chat"
 import { loadMemories, saveMemory, detectMemory } from "@/lib/memory"
+import { addCoins, calculateChatEarnings, getUserCoins } from "@/lib/coins"
+import { CoinAnimation } from "@/components/coin-animation"
 
 interface ChatBoxProps {
   stats: { happiness: number; energy: number; hunger: number }
@@ -10,11 +13,13 @@ interface ChatBoxProps {
 }
 
 export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
+  const { user } = usePrivy()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
   const [memories, setMemories] = useState<string[]>([])
   const [statFloat, setStatFloat] = useState<{ text: string; color: string } | null>(null)
+  const [coinFloat, setCoinFloat] = useState<{ amount: number; type: 'earn' | 'spend' } | null>(null)
   const [consecutiveCount, setConsecutiveCount] = useState(0)
   const lastMessageTime = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -114,6 +119,16 @@ export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
       const updatedWithReply = [...updatedWithUser, regenmonMsg]
       setMessages(updatedWithReply)
       saveChat(updatedWithReply)
+      
+      // Award coins after successful response
+      if (user && data.reply) {
+        const coinsToAdd = calculateChatEarnings(getUserCoins(user.id))
+        if (coinsToAdd > 0) {
+          addCoins(user.id, coinsToAdd)
+          setCoinFloat({ amount: coinsToAdd, type: 'earn' })
+          setTimeout(() => setCoinFloat(null), 1200)
+        }
+      }
     } catch {
       const errorMsg: ChatMessage = {
         role: "regenmon",
@@ -153,6 +168,15 @@ export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
         >
           {statFloat.text}
         </div>
+      )}
+
+      {/* Coin animation */}
+      {coinFloat && (
+        <CoinAnimation
+          amount={coinFloat.amount}
+          type={coinFloat.type}
+          onComplete={() => setCoinFloat(null)}
+        />
       )}
 
       {/* Messages area */}
