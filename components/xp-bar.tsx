@@ -1,34 +1,23 @@
 "use client"
 
 interface XpBarProps {
-  xpActual: number
-  xpRequired: number
-  level: number
-  isLevelingUp?: boolean
+  current: number
+  required: number
 }
 
-export function XpBar({ xpActual, xpRequired, level, isLevelingUp }: XpBarProps) {
-  const percentage = xpRequired > 0 ? (xpActual / xpRequired) * 100 : 0
+export function XpBar({ current, required }: XpBarProps) {
+  const percentage = required > 0 ? (current / required) * 100 : 0
   const displayPercentage = Math.round(percentage)
 
   return (
-    <div className="w-full space-y-1">
-      <div className="flex justify-between items-center text-xs">
-        <span className="text-foreground">NIVEL {level}</span>
-        <span className={`text-foreground ${isLevelingUp ? "animate-pulse" : ""}`}>
-          {xpActual}/{xpRequired} XP
-        </span>
-      </div>
-      <div className="relative w-full h-4 bg-black border-2 border-white overflow-hidden">
-        <div
-          className={`h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-300 ${
-            isLevelingUp ? "animate-pulse" : ""
-          }`}
-          style={{ width: `${displayPercentage}%` }}
-        />
-        <div className="absolute inset-0 pointer-events-none border-l border-white/50" />
-      </div>
-      <div className="text-xs text-center text-foreground/60">{displayPercentage}%</div>
+    <div className="relative w-full h-3 bg-background/30 border border-border/50 rounded-lg overflow-hidden">
+      <div
+        className="h-full bg-gradient-to-r from-purple-500 to-purple-400 transition-all duration-300"
+        style={{ width: `${displayPercentage}%` }}
+      />
+      <div className="absolute inset-0 pointer-events-none opacity-40" style={{
+        backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)"
+      }} />
     </div>
   )
 }

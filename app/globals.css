@@ -566,3 +566,57 @@
   70% { opacity: 1; }
   100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
 }
+
+/* ===== Level Up Animation ===== */
+
+@keyframes level-up-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(20px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) translateY(-10px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-100px);
+  }
+}
+
+@keyframes level-up-star {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5) rotate(360deg) translateY(-80px);
+  }
+}
+
+@keyframes level-up-shine {
+  0%, 100% {
+    opacity: 0;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+}
+
+.animate-level-up-pop {
+  animation: level-up-pop 1.5s ease-out forwards;
+}
+
+.animate-level-up-star {
+  animation: level-up-star 1.2s ease-out forwards;
+}
+
+.animate-level-up-shine {
+  animation: level-up-shine 1s ease-in-out infinite;
+}

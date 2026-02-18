@@ -52,7 +52,19 @@ export function loadRegenmon(): RegenmonData | null {
   const raw = localStorage.getItem(STORAGE_KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw) as RegenmonData
+    const data = JSON.parse(raw) as Partial<RegenmonData>
+    // Migration: Add missing XP fields for old Regenmon
+    return {
+      name: data.name || "",
+      type: (data.type || "semilla") as RegenmonType,
+      happiness: data.happiness ?? 50,
+      energy: data.energy ?? 50,
+      hunger: data.hunger ?? 50,
+      createdAt: data.createdAt || new Date().toISOString(),
+      level: data.level ?? 1,
+      xpActual: data.xpActual ?? 0,
+      xpTotal: data.xpTotal ?? 0,
+    } as RegenmonData
   } catch {
     return null
   }

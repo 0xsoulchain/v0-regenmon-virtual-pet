@@ -15,9 +15,27 @@ interface CreateScreenProps {
 export function CreateScreen({ onCreated }: CreateScreenProps) {
   const [name, setName] = useState("")
   const [selectedType, setSelectedType] = useState<RegenmonType | null>(null)
+  const [nameError, setNameError] = useState("")
 
   const isNameValid = name.trim().length >= 2 && name.trim().length <= 15
   const canCreate = isNameValid && selectedType !== null
+
+  // Validate name input with real-time feedback
+  const handleNameChange = (value: string) => {
+    // Remove special characters
+    const sanitized = value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, "")
+    setName(sanitized)
+
+    if (sanitized.length === 0) {
+      setNameError("")
+    } else if (sanitized.trim().length < 2) {
+      setNameError("Mínimo 2 caracteres")
+    } else if (sanitized.length > 15) {
+      setNameError("Máximo 15 caracteres")
+    } else {
+      setNameError("")
+    }
+  }
 
   function handleCreate() {
     if (!canCreate || !selectedType) return
@@ -29,6 +47,9 @@ export function CreateScreen({ onCreated }: CreateScreenProps) {
       energy: 50,
       hunger: 50,
       createdAt: new Date().toISOString(),
+      level: 1,
+      xpActual: 0,
+      xpTotal: 0,
     }
 
     saveRegenmon(data)
@@ -60,11 +81,16 @@ export function CreateScreen({ onCreated }: CreateScreenProps) {
               placeholder="2-15 letras"
               maxLength={15}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleNameChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && canCreate) {
+                  handleCreate()
+                }
+              }}
             />
-            {name.length > 0 && !isNameValid && (
+            {nameError && (
               <p className="text-destructive text-[8px] mt-2">
-                {"Entre 2 y 15 caracteres"}
+                {nameError}
               </p>
             )}
           </div>
