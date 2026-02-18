@@ -6,6 +6,9 @@ import {
   REGENMON_TYPES,
   saveRegenmon,
   deleteRegenmon,
+  getLevelFromXp,
+  getXpProgressInLevel,
+  canLevelUp,
 } from "@/lib/regenmon"
 import { StatBar } from "@/components/stat-bar"
 import { SharkSprite, TreeSprite, BatterySprite } from "@/components/pet-sprites"
@@ -13,6 +16,8 @@ import { RegenmonLogo } from "@/components/regenmon-logo"
 import { BackgroundParticles } from "@/components/background-particles"
 import { ActionEffect } from "@/components/action-effects"
 import { ChatBox } from "@/components/chat-box"
+import { XpBar } from "@/components/xp-bar"
+import { LevelUpAnimation } from "@/components/level-up-animation"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -35,6 +40,8 @@ function PetIllustration({ type, color }: { type: string; color: string }) {
 
 export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
+  const [chatOpen, setChatOpen] = useState(true)
+  const [showLevelUp, setShowLevelUp] = useState(false)
   const [stats, setStats] = useState({
     happiness: data.happiness,
     energy: data.energy,
@@ -42,6 +49,7 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   })
   const [activeAction, setActiveAction] = useState<"play" | "sleep" | "eat" | null>(null)
   const [petAnim, setPetAnim] = useState("")
+  const [currentLevel, setCurrentLevel] = useState(getLevelFromXp(data.xpTotal))
   const typeInfo = REGENMON_TYPES[data.type]
 
   // Use refs for the latest data/callback so timers never re-register
@@ -62,8 +70,8 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   // Persist helper using refs (stable, no deps issues)
   // Uses queueMicrotask to defer the parent setState and avoid
   // "Cannot update a component while rendering a different component"
-  const persist = useCallback((newStats: { happiness: number; energy: number; hunger: number }) => {
-    const updated: RegenmonData = { ...dataRef.current, ...newStats }
+  const persist = useCallback((newStats: { happiness: number; energy: number; hunger: number }, updatedData?: RegenmonData) => {
+    const updated: RegenmonData = updatedData || { ...dataRef.current, ...newStats }
     saveRegenmon(updated)
     queueMicrotask(() => {
       onUpdateRef.current(updated)
@@ -127,7 +135,29 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
       const raw = prev[stat] + delta
       const clamped = Math.max(0, Math.min(100, raw))
       const next = { ...prev, [stat]: clamped }
-      persist(next)
+      
+      // Calculate XP gain
+      let xpGain = 0
+      if (action === "play") xpGain = 10
+      if (action === "sleep") xpGain = 5
+      if (action === "eat") xpGain = 8
+
+      const updatedData: RegenmonData = {
+        ...dataRef.current,
+        ...next,
+        xpActual: (dataRef.current.xpActual ?? 0) + xpGain,
+        xpTotal: (dataRef.current.xpTotal ?? 0) + xpGain,
+      }
+      
+      // Check for level up
+      const newLevel = getLevelFromXp(updatedData.xpTotal)
+      if (newLevel > currentLevel) {
+        setCurrentLevel(newLevel)
+        setShowLevelUp(true)
+        setTimeout(() => setShowLevelUp(false), 2000)
+      }
+
+      persist(next, updatedData)
       return next
     })
   }
@@ -196,6 +226,22 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
 
         {/* Stats */}
         <div className="w-full max-w-sm">
+          {/* Level and XP */}
+          <div className="mb-4 px-4 py-3 rounded-lg bg-background/50 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] font-bold text-foreground">
+                Nivel {currentLevel}
+              </span>
+              <span className="text-[8px] text-muted-foreground">
+                {Math.floor(getXpProgressInLevel(data.xpTotal, currentLevel).current)} / {getXpProgressInLevel(data.xpTotal, currentLevel).required} XP
+              </span>
+            </div>
+            <XpBar 
+              current={getXpProgressInLevel(data.xpTotal, currentLevel).current}
+              required={getXpProgressInLevel(data.xpTotal, currentLevel).required}
+            />
+          </div>
+
           <div className="stat-container">
             <StatBar
               label="Felicidad"
@@ -278,7 +324,15 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
 
         {/* Chat */}
         <div className="w-full max-w-sm mt-6 relative">
-          <ChatBox stats={stats} onStatChange={handleChatStatChange} />
+          <button
+            type="button"
+            className="w-full flex items-center justify-between px-4 py-2 mb-2 rounded-lg bg-background/50 border border-border/30 hover:bg-background/70 transition-colors text-[9px] font-bold text-foreground"
+            onClick={() => setChatOpen(!chatOpen)}
+          >
+            <span>Chat</span>
+            <span className="text-[10px]">{chatOpen ? "−" : "+"}</span>
+          </button>
+          {chatOpen && <ChatBox stats={stats} onStatChange={handleChatStatChange} />}
         </div>
 
         {/* Created date */}
@@ -291,6 +345,9 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
           })}
         </p>
       </div>
+
+      {/* Level up animation */}
+      {showLevelUp && <LevelUpAnimation level={currentLevel} />}
 
       {/* Confirm dialog */}
       {showConfirm && (

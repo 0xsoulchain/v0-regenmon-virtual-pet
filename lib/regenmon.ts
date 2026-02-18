@@ -7,6 +7,9 @@ export interface RegenmonData {
   energy: number
   hunger: number
   createdAt: string
+  level: number
+  xpActual: number
+  xpTotal: number
 }
 
 export const REGENMON_TYPES: Record<
@@ -49,7 +52,19 @@ export function loadRegenmon(): RegenmonData | null {
   const raw = localStorage.getItem(STORAGE_KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw) as RegenmonData
+    const data = JSON.parse(raw) as Partial<RegenmonData>
+    // Migration: Add missing XP fields for old Regenmon
+    return {
+      name: data.name || "",
+      type: (data.type || "semilla") as RegenmonType,
+      happiness: data.happiness ?? 50,
+      energy: data.energy ?? 50,
+      hunger: data.hunger ?? 50,
+      createdAt: data.createdAt || new Date().toISOString(),
+      level: data.level ?? 1,
+      xpActual: data.xpActual ?? 0,
+      xpTotal: data.xpTotal ?? 0,
+    } as RegenmonData
   } catch {
     return null
   }
@@ -60,5 +75,50 @@ export function deleteRegenmon(): void {
     localStorage.removeItem(STORAGE_KEY)
     localStorage.removeItem("regenmonChatHistory")
     localStorage.removeItem("regenmonMemories")
+  }
+}
+
+/**
+ * Calcula el XP total requerido para alcanzar un nivel específico
+ * Fórmula: 100 * (2 ^ (nivel - 2))
+ */
+export function getXpRequiredForLevel(level: number): number {
+  if (level <= 1) return 0
+  return Math.floor(100 * Math.pow(2, level - 2))
+}
+
+/**
+ * Determina el nivel actual basado en XP total acumulado
+ */
+export function getLevelFromXp(xpTotal: number): number {
+  let level = 1
+  while (getXpRequiredForLevel(level + 1) <= xpTotal) {
+    level++
+  }
+  return level
+}
+
+/**
+ * Verifica si se puede subir de nivel con el XP actual
+ */
+export function canLevelUp(xpTotal: number, currentLevel: number): boolean {
+  const nextLevelXp = getXpRequiredForLevel(currentLevel + 1)
+  return xpTotal >= nextLevelXp
+}
+
+/**
+ * Calcula el XP actual dentro del nivel (0 a xpParaSiguienteNivel)
+ */
+export function getXpProgressInLevel(xpTotal: number, level: number): {
+  current: number
+  required: number
+} {
+  const currentLevelXp = getXpRequiredForLevel(level)
+  const nextLevelXp = getXpRequiredForLevel(level + 1)
+  const xpInLevel = xpTotal - currentLevelXp
+  const xpNeeded = nextLevelXp - currentLevelXp
+  return {
+    current: xpInLevel,
+    required: xpNeeded,
   }
 }
