@@ -24,8 +24,7 @@ interface PetScreenProps {
   data: RegenmonData
   onReset: () => void
   onUpdate: (data: RegenmonData) => void
-  userId: string | null
-  onCoinsChange?: (coins: number) => void
+  userId?: string | null
 }
 
 function PetIllustration({ type, color }: { type: string; color: string }) {
@@ -41,7 +40,7 @@ function PetIllustration({ type, color }: { type: string; color: string }) {
   }
 }
 
-export function PetScreen({ data, onReset, onUpdate, userId, onCoinsChange }: PetScreenProps) {
+export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
@@ -329,9 +328,7 @@ export function PetScreen({ data, onReset, onUpdate, userId, onCoinsChange }: Pe
         <div className="w-full max-w-sm mt-4">
           <FeedButton
             hunger={stats.hunger}
-            userId={userId}
             onFeed={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
-            onCoinsChange={onCoinsChange}
             disabled={activeAction !== null}
           />
         </div>
@@ -346,7 +343,7 @@ export function PetScreen({ data, onReset, onUpdate, userId, onCoinsChange }: Pe
             <span>Chat</span>
             <span className="text-[10px]">{chatOpen ? "−" : "+"}</span>
           </button>
-          {chatOpen && <ChatBox stats={stats} onStatChange={handleChatStatChange} userId={userId} onCoinsChange={onCoinsChange} />}
+          {chatOpen && <ChatBox stats={stats} onStatChange={handleChatStatChange} />}
         </div>
 
         {/* Created date */}
