@@ -20,6 +20,8 @@ import { ChatBox } from "@/components/chat-box"
 import { XpBar } from "@/components/xp-bar"
 import { LevelUpAnimation } from "@/components/level-up-animation"
 import { FeedButton } from "@/components/feed-button"
+import { GetCoinsButton } from "@/components/get-coins-button"
+import { ActivityHistory } from "@/components/activity-history"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -336,14 +338,18 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
           </button>
         </div>
 
-        {/* Feed Button with coin cost */}
-        <div className="w-full max-w-sm mt-4">
+        {/* Feed Button and Get Coins Button */}
+        <div className="w-full max-w-sm mt-4 space-y-2">
           <FeedButton
             hunger={stats.hunger}
             onFeed={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
             disabled={activeAction !== null}
             userId={userId}
             coins={coins}
+            onCoinsChange={setCoins}
+          />
+          <GetCoinsButton
+            userId={userId}
             onCoinsChange={setCoins}
           />
         </div>
@@ -359,6 +365,11 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
             <span className="text-[10px]">{chatOpen ? "−" : "+"}</span>
           </button>
           {chatOpen && <ChatBox stats={stats} onStatChange={handleChatStatChange} />}
+        </div>
+
+        {/* Activity History */}
+        <div className="w-full max-w-sm mt-6">
+          <ActivityHistory userId={userId} />
         </div>
 
         {/* Created date */}

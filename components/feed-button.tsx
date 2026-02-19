@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { CURRENCY_CONFIG, deductCoins, canAfford } from '@/lib/managers/currency-manager'
+import { CoinsAnimation } from '@/components/coins-animation'
 
 interface FeedButtonProps {
   hunger: number
@@ -22,6 +23,7 @@ export function FeedButton({
 }: FeedButtonProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [feedback, setFeedback] = useState<string>('')
+  const [showCoinAnimation, setShowCoinAnimation] = useState(false)
 
   const canFeedPet = hunger > 0 && !disabled && !isProcessing
   const hasEnoughCoins = userId ? canAfford(userId, CURRENCY_CONFIG.FEED_COST) : false
@@ -47,6 +49,9 @@ export function FeedButton({
       // Ejecutar acción de alimentar
       onFeed()
       onCoinsChange?.(result.newBalance)
+
+      // Show coin animation
+      setShowCoinAnimation(true)
 
       // Feedback visual
       setFeedback('✅ ¡Alimentado!')
@@ -85,6 +90,13 @@ export function FeedButton({
 
   return (
     <div className="relative group">
+      {showCoinAnimation && (
+        <CoinsAnimation
+          amount={CURRENCY_CONFIG.FEED_COST}
+          type="spend"
+          onComplete={() => setShowCoinAnimation(false)}
+        />
+      )}
       <button
         onClick={handleFeed}
         disabled={!isEnabled}
