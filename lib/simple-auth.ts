@@ -1,5 +1,7 @@
 'use client'
 
+import { getUserData, saveUserData } from '@/lib/managers/user-data-manager'
+
 export interface AuthUser {
   id: string
   email: string
@@ -75,11 +77,19 @@ export function verifyOTP(email: string, code: string): AuthUser | null {
       return null
     }
 
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substring(7)}`
     const user: AuthUser = {
-      id: `user_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      id: userId,
       email,
       name: email.split('@')[0],
       verified: true,
+    }
+
+    // Inicializar datos de usuario con 100 monedas
+    const userData = getUserData(userId)
+    if (userData.monedas === 100) {
+      // Es la primera vez, ya tiene 100 monedas por defecto
+      saveUserData(userData)
     }
 
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))

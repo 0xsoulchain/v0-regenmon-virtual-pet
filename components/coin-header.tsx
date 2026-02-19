@@ -1,25 +1,27 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { User as PrivyUser } from '@privy-io/react-auth'
-import { getCoins } from '@/lib/user-manager'
 
 interface CoinHeaderProps {
-  user: PrivyUser | null
+  userId: string | null
+  userName: string
   logout: () => void
 }
 
-export function CoinHeader({ user, logout }: CoinHeaderProps) {
+export function CoinHeader({ userId, userName, logout }: CoinHeaderProps) {
   const [coins, setCoins] = useState(0)
 
   useEffect(() => {
-    if (user?.id) {
-      const currentCoins = getCoins(user.id)
-      setCoins(currentCoins)
+    if (userId) {
+      // Obtener monedas del localStorage si existen
+      try {
+        const storedCoins = localStorage.getItem(`coins_${userId}`)
+        if (storedCoins) setCoins(parseInt(storedCoins))
+      } catch {
+        setCoins(0)
+      }
     }
-  }, [user?.id])
-
-  const displayName = user?.email?.address || user?.phone?.number || 'Usuario'
+  }, [userId])
 
   return (
     <header className="w-full border-b border-border/50 bg-background/40 backdrop-blur-sm">
@@ -30,15 +32,15 @@ export function CoinHeader({ user, logout }: CoinHeaderProps) {
         </div>
 
         {/* Center: User Info */}
-        {user && (
+        {userId && (
           <div className="text-xs text-muted-foreground">
-            {displayName}
+            {userName}
           </div>
         )}
 
         {/* Right: Coins + Logout */}
         <div className="flex items-center gap-4">
-          {user ? (
+          {userId ? (
             <>
               <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/20 border border-orange-500/30">
                 <span className="text-sm">🍊</span>

@@ -1,18 +1,12 @@
 'use client'
 
-import { usePrivy } from '@privy-io/react-auth'
-import { getDisplayName } from '@/lib/managers/auth-manager'
-import type { User as PrivyUser } from '@privy-io/react-auth'
-
 interface DynamicHeaderProps {
-  user: PrivyUser | null
+  userName: string
   coins: number
   onLogout: () => void
 }
 
-export function DynamicHeader({ user, coins, onLogout }: DynamicHeaderProps) {
-  const { login } = usePrivy()
-
+export function DynamicHeader({ userName, coins, onLogout }: DynamicHeaderProps) {
   return (
     <header className="w-full border-b border-border/50 bg-background/40 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -22,11 +16,9 @@ export function DynamicHeader({ user, coins, onLogout }: DynamicHeaderProps) {
         </div>
 
         {/* Center: User Info */}
-        {user && (
-          <div className="text-xs text-muted-foreground">
-            {getDisplayName(user)}
-          </div>
-        )}
+        <div className="text-xs text-muted-foreground">
+          {userName}
+        </div>
 
         {/* Right: Coins + Auth Buttons */}
         <div className="flex items-center gap-3">

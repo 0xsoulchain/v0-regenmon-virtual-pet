@@ -10,6 +10,7 @@ import {
   getXpProgressInLevel,
   canLevelUp,
 } from "@/lib/regenmon"
+import { getBalance } from "@/lib/managers/currency-manager"
 import { StatBar } from "@/components/stat-bar"
 import { SharkSprite, TreeSprite, BatterySprite } from "@/components/pet-sprites"
 import { RegenmonLogo } from "@/components/regenmon-logo"
@@ -19,6 +20,8 @@ import { ChatBox } from "@/components/chat-box"
 import { XpBar } from "@/components/xp-bar"
 import { LevelUpAnimation } from "@/components/level-up-animation"
 import { FeedButton } from "@/components/feed-button"
+import { GetCoinsButton } from "@/components/get-coins-button"
+import { ActivityHistory } from "@/components/activity-history"
 
 interface PetScreenProps {
   data: RegenmonData
@@ -45,6 +48,7 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
   const [showConfirm, setShowConfirm] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
+  const [coins, setCoins] = useState(userId ? getBalance(userId) : 0)
   const [stats, setStats] = useState({
     happiness: data.happiness,
     energy: data.energy,
@@ -196,16 +200,25 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
       {/* Background particles */}
       <BackgroundParticles type={data.type} />
 
-      {/* Header with logo */}
+      {/* Header with logo and coins */}
       <header className="relative z-10 flex items-center justify-between p-3 md:p-4 border-b-2 border-border/50">
         <RegenmonLogo />
-        <button
-          type="button"
-          className="reset-btn"
-          onClick={() => setShowConfirm(true)}
-        >
-          Reiniciar
-        </button>
+        <div className="flex items-center gap-4">
+          {userId && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-orange-500/20 border border-orange-500/30">
+              <span className="text-sm">🍊</span>
+              <span className="text-xs font-bold text-orange-400">{coins}</span>
+              <span className="text-[8px] text-muted-foreground">FRUTA</span>
+            </div>
+          )}
+          <button
+            type="button"
+            className="reset-btn"
+            onClick={() => setShowConfirm(true)}
+          >
+            Reiniciar
+          </button>
+        </div>
       </header>
 
       {/* Pet display area */}
@@ -325,12 +338,19 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
           </button>
         </div>
 
-        {/* Feed Button with coin cost */}
-        <div className="w-full max-w-sm mt-4">
+        {/* Feed Button and Get Coins Button */}
+        <div className="w-full max-w-sm mt-4 space-y-2">
           <FeedButton
             hunger={stats.hunger}
             onFeed={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
             disabled={activeAction !== null}
+            userId={userId}
+            coins={coins}
+            onCoinsChange={setCoins}
+          />
+          <GetCoinsButton
+            userId={userId}
+            onCoinsChange={setCoins}
           />
         </div>
 
@@ -345,6 +365,11 @@ export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScre
             <span className="text-[10px]">{chatOpen ? "−" : "+"}</span>
           </button>
           {chatOpen && <ChatBox stats={stats} onStatChange={handleChatStatChange} />}
+        </div>
+
+        {/* Activity History */}
+        <div className="w-full max-w-sm mt-6">
+          <ActivityHistory userId={userId} />
         </div>
 
         {/* Created date */}
