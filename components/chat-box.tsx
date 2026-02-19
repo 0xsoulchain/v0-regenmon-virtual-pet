@@ -3,18 +3,23 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { type ChatMessage, loadChat, saveChat } from "@/lib/chat"
 import { loadMemories, saveMemory, detectMemory } from "@/lib/memory"
+import { CoinAnimation } from "@/components/coin-animation"
+import { addCoins, getRandomCoinReward } from "@/lib/managers/currency-manager"
 
 interface ChatBoxProps {
   stats: { happiness: number; energy: number; hunger: number }
   onStatChange: (delta: { happiness?: number; energy?: number }) => void
+  userId?: string | null
+  onCoinsChange?: (coins: number) => void
 }
 
-export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
+export function ChatBox({ stats, onStatChange, userId, onCoinsChange }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
   const [memories, setMemories] = useState<string[]>([])
   const [statFloat, setStatFloat] = useState<{ text: string; color: string } | null>(null)
+  const [coinAnimation, setCoinAnimation] = useState<{ amount: number; type: 'earn' | 'spend' } | null>(null)
   const [consecutiveCount, setConsecutiveCount] = useState(0)
   const lastMessageTime = useRef<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -114,6 +119,18 @@ export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
       const updatedWithReply = [...updatedWithUser, regenmonMsg]
       setMessages(updatedWithReply)
       saveChat(updatedWithReply)
+
+      // Award coins if user is authenticated
+      if (userId && data.reply) {
+        const coinsToAdd = getRandomCoinReward()
+        const result = addCoins(userId, coinsToAdd)
+        
+        if (result.success && result.added > 0) {
+          setCoinAnimation({ amount: result.added, type: 'earn' })
+          onCoinsChange?.(result.newBalance)
+          setTimeout(() => setCoinAnimation(null), 1300)
+        }
+      }
     } catch {
       const errorMsg: ChatMessage = {
         role: "regenmon",
@@ -153,6 +170,15 @@ export function ChatBox({ stats, onStatChange }: ChatBoxProps) {
         >
           {statFloat.text}
         </div>
+      )}
+
+      {/* Coin animation */}
+      {coinAnimation && (
+        <CoinAnimation
+          amount={coinAnimation.amount}
+          type={coinAnimation.type}
+          onComplete={() => setCoinAnimation(null)}
+        />
       )}
 
       {/* Messages area */}
