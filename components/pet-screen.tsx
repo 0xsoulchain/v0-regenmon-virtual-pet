@@ -40,7 +40,7 @@ function PetIllustration({ type, color }: { type: string; color: string }) {
   }
 }
 
-export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
+export function PetScreen({ data, onReset, onUpdate, userId }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
