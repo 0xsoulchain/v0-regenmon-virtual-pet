@@ -10,6 +10,8 @@ export interface RegenmonData {
   level: number
   xpActual: number
   xpTotal: number
+  userId?: string
+  coins?: number
 }
 
 export const REGENMON_TYPES: Record<

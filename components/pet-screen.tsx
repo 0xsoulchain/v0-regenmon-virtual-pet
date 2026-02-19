@@ -18,11 +18,14 @@ import { ActionEffect } from "@/components/action-effects"
 import { ChatBox } from "@/components/chat-box"
 import { XpBar } from "@/components/xp-bar"
 import { LevelUpAnimation } from "@/components/level-up-animation"
+import { FeedButton } from "@/components/feed-button"
 
 interface PetScreenProps {
   data: RegenmonData
   onReset: () => void
   onUpdate: (data: RegenmonData) => void
+  userId?: string
+  userName?: string
 }
 
 function PetIllustration({ type, color }: { type: string; color: string }) {
@@ -38,7 +41,7 @@ function PetIllustration({ type, color }: { type: string; color: string }) {
   }
 }
 
-export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
+export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
@@ -320,6 +323,15 @@ export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
             </svg>
             <span className="action-btn-label">Comer</span>
           </button>
+        </div>
+
+        {/* Feed Button with coin cost */}
+        <div className="w-full max-w-sm mt-4">
+          <FeedButton
+            hunger={stats.hunger}
+            onFeed={() => doAction("eat", "hunger", -1, "animate-pet-munch")}
+            disabled={activeAction !== null}
+          />
         </div>
 
         {/* Chat */}

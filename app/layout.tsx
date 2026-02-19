@@ -1,6 +1,7 @@
 import React from "react"
 import type { Metadata, Viewport } from "next"
 import { Press_Start_2P } from "next/font/google"
+import { PrivyWrapper } from "./providers"
 
 import "./globals.css"
 
@@ -36,7 +37,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${pressStart2P.variable} font-sans antialiased`}>
-        {children}
+        <PrivyWrapper>
+          {children}
+        </PrivyWrapper>
       </body>
     </html>
   )
