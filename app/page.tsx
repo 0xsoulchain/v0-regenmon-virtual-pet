@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { type RegenmonData, loadRegenmon, saveRegenmon } from "@/lib/regenmon"
-import { getCurrentUser, logoutCurrentUser, loginUser, type AuthUser } from "@/lib/simple-auth"
+import { getCurrentUser, logoutCurrentUser, verifyOTP, type AuthUser } from "@/lib/simple-auth"
 import { LoginScreen } from "@/components/login-screen"
 import { CreateScreen } from "@/components/create-screen"
 import { PetScreen } from "@/components/pet-screen"
@@ -24,9 +24,13 @@ export default function Home() {
   }, [])
 
   const handleLogin = (email: string) => {
-    const newUser = loginUser(email)
-    setUser(newUser)
-    setPet(null)
+    // El código OTP es verificado en LoginScreen, aquí solo recibimos el email
+    // y el usuario ya está autenticado en simple-auth
+    const authenticatedUser = getCurrentUser()
+    if (authenticatedUser) {
+      setUser(authenticatedUser)
+      setPet(null)
+    }
   }
 
   const handleLogout = () => {
