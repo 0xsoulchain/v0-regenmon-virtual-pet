@@ -2,18 +2,45 @@
 
 import { useEffect, useState } from "react"
 import { type RegenmonData, loadRegenmon, saveRegenmon } from "@/lib/regenmon"
+import { getCurrentUser, logoutCurrentUser } from "@/lib/simple-auth"
+import { LoginScreen } from "@/components/login-screen"
 import { CreateScreen } from "@/components/create-screen"
 import { PetScreen } from "@/components/pet-screen"
 
 export default function Home() {
+  const [user, setUser] = useState<{ id: string; email: string; name: string } | null | undefined>(undefined)
   const [pet, setPet] = useState<RegenmonData | null | undefined>(undefined)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    setPet(loadRegenmon())
+    const currentUser = getCurrentUser()
+    setUser(currentUser)
+    if (currentUser) {
+      setPet(loadRegenmon())
+    } else {
+      setPet(null)
+    }
+    setIsLoading(false)
   }, [])
 
+  const handleLogin = (email: string) => {
+    // Import the auth function
+    const { default: module } = require('@/lib/simple-auth')
+    const newUser = module.default?.login?.(email)
+    if (newUser) {
+      setUser(newUser)
+      setPet(null) // Reset pet for new user
+    }
+  }
+
+  const handleLogout = () => {
+    logoutCurrentUser()
+    setUser(null)
+    setPet(null)
+  }
+
   // Loading state
-  if (pet === undefined) {
+  if (isLoading || user === undefined || pet === undefined) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-background/50">
         <div className="text-center animate-float">
@@ -26,19 +53,30 @@ export default function Home() {
     )
   }
 
-  // No pet saved — show creation screen
+  // Not logged in — show login screen
+  if (!user) {
+    return <LoginScreen onLogin={handleLogin} />
+  }
+
+  // Logged in but no pet — show creation screen
   if (pet === null) {
     return <CreateScreen onCreated={(data) => setPet(data)} />
   }
 
   // Pet exists — show pet screen
   return (
-    <PetScreen 
-      data={pet} 
-      onReset={() => setPet(null)} 
-      onUpdate={(updated) => setPet(updated)} 
+    <PetScreen
+      data={pet}
+      onReset={handleLogout}
+      onUpdate={(updated) => {
+        setPet(updated)
+        saveRegenmon(updated)
+      }}
+      userId={user.id}
+      userName={user.name}
     />
   )
 }
+
 
 

@@ -24,6 +24,8 @@ interface PetScreenProps {
   data: RegenmonData
   onReset: () => void
   onUpdate: (data: RegenmonData) => void
+  userId?: string
+  userName?: string
 }
 
 function PetIllustration({ type, color }: { type: string; color: string }) {
@@ -39,7 +41,7 @@ function PetIllustration({ type, color }: { type: string; color: string }) {
   }
 }
 
-export function PetScreen({ data, onReset, onUpdate }: PetScreenProps) {
+export function PetScreen({ data, onReset, onUpdate, userId, userName }: PetScreenProps) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [chatOpen, setChatOpen] = useState(true)
   const [showLevelUp, setShowLevelUp] = useState(false)
