@@ -31,7 +31,7 @@ export function getCurrentUser(): AuthUser | null {
   }
 }
 
-export function requestOTP(email: string): { code: string; expiresIn: number } {
+export async function requestOTP(email: string): Promise<{ code: string; expiresIn: number }> {
   const code = generateOTP()
   const pendingAuth: PendingAuth = {
     email,
@@ -41,8 +41,21 @@ export function requestOTP(email: string): { code: string; expiresIn: number } {
 
   if (typeof window !== 'undefined') {
     localStorage.setItem(PENDING_AUTH_KEY, JSON.stringify(pendingAuth))
-    // En producción, aquí enviarías el código por email usando una API
-    console.log(`[v0] Código OTP para ${email}: ${code}`)
+    
+    // Enviar código por email usando la API route
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      })
+      
+      if (!response.ok) {
+        console.error('[v0] Error sending OTP')
+      }
+    } catch (error) {
+      console.error('[v0] Error calling send-otp API:', error)
+    }
   }
 
   return { code, expiresIn: 600000 } // 10 minutos

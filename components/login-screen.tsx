@@ -36,7 +36,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
     setIsLoading(true)
     try {
-      const result = requestOTP(email)
+      const result = await requestOTP(email)
       setOtpCode(result.code)
       setStep('otp')
     } catch (err) {
