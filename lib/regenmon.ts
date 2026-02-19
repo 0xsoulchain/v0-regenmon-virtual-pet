@@ -104,6 +104,11 @@ export function getRegenmonCountForLevel(level: number): number {
   return b
 }
 
+/**
+ * Calcula el XP total requerido para alcanzar un nivel específico
+ * Fórmula: 100 * (2 ^ (nivel - 2))
+ */
+export function getXpRequiredForLevel(level: number): number {
   if (level <= 1) return 0
   return Math.floor(100 * Math.pow(2, level - 2))
 }
