@@ -1,13 +1,10 @@
-// Privy-based authentication and user data management
-import type { User as PrivyUser } from "@privy-io/react-auth"
-
-const USER_DATA_KEY = "regenmon_user_data"
+// User data management for OTP-based authentication
 
 export interface RegenmonUser {
   userId: string
   email: string
   monedas: number
-  lastDailyReset: string // ISO date string for daily coin limit
+  lastDailyReset: string
   dailyCoinsEarned: number
   regenmon: {
     nombre: string

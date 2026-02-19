@@ -81,10 +81,29 @@ export function deleteRegenmon(): void {
 }
 
 /**
- * Calcula el XP total requerido para alcanzar un nivel específico
- * Fórmula: 100 * (2 ^ (nivel - 2))
+ * Calcula la cantidad de Regenmons permitidos para un nivel específico
+ * Usa la secuencia Fibonacci: 1, 2, 3, 5, 8, 13, 21...
  */
-export function getXpRequiredForLevel(level: number): number {
+export function getRegenmonCountForLevel(level: number): number {
+  if (level < 1) return 1
+  
+  // Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13, 21...
+  const fibonacciSeq = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144]
+  
+  if (level <= fibonacciSeq.length) {
+    return fibonacciSeq[level - 1]
+  }
+  
+  // Para niveles mayores a 12, calcular Fibonacci
+  let a = 1, b = 1
+  for (let i = 2; i < level; i++) {
+    const temp = b
+    b = a + b
+    a = temp
+  }
+  return b
+}
+
   if (level <= 1) return 0
   return Math.floor(100 * Math.pow(2, level - 2))
 }
